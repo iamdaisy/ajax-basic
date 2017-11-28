@@ -1,0 +1,35 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Title:</strong>
+  <%= @post.title %>
+</p>
+
+<p>
+  <strong>Contents:</strong>
+  <%= @post.contents %>
+</p>
+
+<%= form_tag create_comment_to_post_path, id: "comment" do %>
+  <%= text_field_tag :body %>
+  <%= submit_tag "댓글작성" %>
+<% end %>
+
+<%= link_to 'Edit', edit_post_path(@post) %> |
+<%= link_to 'Back', posts_path %>
+
+<script>
+  $(function() {
+    var form = $('#comment');
+    form.on('submit', function(e) {
+      e.preventDefault(); //화면이동 끊어버리겠다는 것(이벤트만 동작하고 실제 동작하는 함수는 자름)
+      var contents = $('#body').val(); // 현재 입력되있는 값을 가져온다
+      $.ajax({
+        url: "<%= create_comment_to_post_path %>",
+        method: "POST"
+      })
+    });
+    
+  })
+
+</script>
