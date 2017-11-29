@@ -1,15 +1,20 @@
 class PostsController < ApplicationController
-  before_action :set_post, only: [:show, :edit, :update, :destroy]
+  before_action :set_post, only: [:show, :edit, :update, :destroy, :create_comment, :like_post]
+  before_action :is_login?, only: [:create_comment, :destroy_comment, :like_post]
 
   # GET /posts
   # GET /posts.json
   def index
-    @posts = Post.all
+    @posts = Post.order("created_at").page(params[:page])
   end
 
   # GET /posts/1
   # GET /posts/1.json
   def show
+    @like = true
+    if user_signed_in?
+      @like = current_user.likes.find_by(post_id: @post.id).nil?
+    end
   end
 
   # GET /posts/new
@@ -61,9 +66,32 @@ class PostsController < ApplicationController
     end
   end
   
-  def create_comment
-    puts "create comments"
+  def like_post
     
+     if Like.where(user_id: current_user.id, post_id: @post.id).first.nil?
+        #현재 유저가 좋아요 누르지 않은경우(where은 배열형태라 first 써줘야함)에 대한 실행문
+        #좋아요를 만들면됨
+        @result = current_user.likes.create(post_id: @post.id)
+        # puts "좋아요누름"
+     else
+        #기존의 좋아요 삭제하면됨
+        @result = current_user.likes.find_by(post_id: @post.id).destroy
+        # puts "좋아요취소"
+     end
+    # puts "like post clicked !"
+    @result = @result.frozen?   #freeze (ex. @post.destroy하면 @posts는 freeze 상태-메모리상에만 존재)
+
+  end
+  
+  
+  
+  def create_comment
+    # @c = @post.comments.create(body: params[:body]) // strong parameter로 교체
+    @c = @post.comments.create(comment_params)
+  end
+  
+  def destroy_comment
+    @c = Comment.find(params[:comment_id]).destroy
   end
 
   private
@@ -74,6 +102,18 @@ class PostsController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def post_params
-      params.require(:post).permit(:title, :contents)
+      params.require(:post).permit(:title, :contents) 
+    end
+    
+    def comment_params
+      params.require(:comment).permit(:body) #strong parameter (sql injection 해킹위험 있어서)
+    end
+    
+    def is_login?
+       unless user_signed_in?
+        respond_to do |format|
+          format.js { render 'please_login.js.erb' }
+        end
+       end
     end
 end
