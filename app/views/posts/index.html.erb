@@ -29,3 +29,17 @@
 
 
 <%= paginate @posts %>
+<script>
+$(function() {
+  var page_scroll_index = 1;
+  $(document).on('scroll', function() {
+    // console.log("움직인당");
+    if($(window).scrollTop() >= $(document).height() - $(window).height()) {
+      $.ajax({
+        method: "GET",
+        url: "<%= scroll_posts_path %>"
+      })
+    }
+  });
+});
+</script>

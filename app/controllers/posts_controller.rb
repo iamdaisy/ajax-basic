@@ -83,6 +83,10 @@ class PostsController < ApplicationController
 
   end
   
+  def page_scroll
+    puts "haha"
+  end
+  
   
   
   def create_comment
